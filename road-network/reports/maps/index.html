@@ -1,0 +1,60 @@
+<!DOCTYPE html><meta charset="utf-8">
+<title>東京23区 避難ルーティング基盤</title>
+<style>
+ body{background:#111318;color:#e8eaf0;font-family:"Noto Sans JP",system-ui,sans-serif;
+   margin:0 auto;max-width:1180px;padding:28px 22px 60px}
+ h1{font-size:23px;margin:0 0 6px} h2{font-size:17px;margin:32px 0 10px}
+ p{color:#aab2c4;line-height:1.75;font-size:14px}
+ img{width:100%;border-radius:10px;margin-top:8px}
+ table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
+ th,td{padding:7px 9px;border-bottom:1px solid #2c3140;text-align:right}
+ th{color:#9aa3b5;font-weight:600;text-align:right;position:sticky;top:0;
+   background:#111318}
+ td:first-child,th:first-child{text-align:left}
+ a{color:#6fb5ff;text-decoration:none} a:hover{text-decoration:underline}
+ .png{margin-left:7px;color:#7a8399;font-size:12px}
+ .note{background:#1c2029;border-left:3px solid #f0a24a;padding:11px 14px;
+   border-radius:5px;font-size:13px;color:#c9d0de;margin-top:10px}
+</style>
+<h1>東京23区 避難ルーティング基盤データ</h1>
+<p>国土地理院「基盤地図情報」から生成。694,712エッジ / 総延長19,586km。
+区名をクリックすると道路網の対話地図が開きます（道幅・倒壊閉塞リスク・勾配を切替）。</p>
+
+<h2>23区の俯瞰</h2>
+<img src="overview_23ku.png" alt="23区俯瞰">
+
+<h2>区別の指標</h2>
+<p>倒壊閉塞リスクの高い順。いずれも延長で重み付けした値です。</p>
+<table>
+<tr><th>区</th><th>総延長 km</th><th>道幅中央値 m</th><th>4m未満 %</th>
+<th>閉塞リスク</th><th>勾配5%超 %</th><th>標高中央値 m</th></tr>
+<tr><td><a href="map_中野区.html">中野区</a><a class="png" href="ward_中野区.png" title="静止画">▦</a></td><td>557</td><td>4.7</td><td>19.7</td><td>0.47</td><td>4.3</td><td>36.6</td></tr>
+<tr><td><a href="map_豊島区.html">豊島区</a><a class="png" href="ward_豊島区.png" title="静止画">▦</a></td><td>456</td><td>4.5</td><td>24.4</td><td>0.45</td><td>3.0</td><td>30.2</td></tr>
+<tr><td><a href="map_杉並区.html">杉並区</a><a class="png" href="ward_杉並区.png" title="静止画">▦</a></td><td>1,228</td><td>4.9</td><td>20.8</td><td>0.44</td><td>2.1</td><td>43.8</td></tr>
+<tr><td><a href="map_目黒区.html">目黒区</a><a class="png" href="ward_目黒区.png" title="静止画">▦</a></td><td>490</td><td>5.3</td><td>19.6</td><td>0.42</td><td>7.4</td><td>28.0</td></tr>
+<tr><td><a href="map_荒川区.html">荒川区</a><a class="png" href="ward_荒川区.png" title="静止画">▦</a></td><td>360</td><td>5.1</td><td>21.7</td><td>0.40</td><td>1.6</td><td>2.0</td></tr>
+<tr><td><a href="map_文京区.html">文京区</a><a class="png" href="ward_文京区.png" title="静止画">▦</a></td><td>350</td><td>5.4</td><td>24.0</td><td>0.38</td><td>9.6</td><td>20.3</td></tr>
+<tr><td><a href="map_新宿区.html">新宿区</a><a class="png" href="ward_新宿区.png" title="静止画">▦</a></td><td>565</td><td>5.0</td><td>21.1</td><td>0.38</td><td>8.1</td><td>28.8</td></tr>
+<tr><td><a href="map_品川区.html">品川区</a><a class="png" href="ward_品川区.png" title="静止画">▦</a></td><td>651</td><td>4.7</td><td>23.3</td><td>0.38</td><td>5.4</td><td>12.6</td></tr>
+<tr><td><a href="map_渋谷区.html">渋谷区</a><a class="png" href="ward_渋谷区.png" title="静止画">▦</a></td><td>462</td><td>5.1</td><td>21.7</td><td>0.37</td><td>10.4</td><td>32.1</td></tr>
+<tr><td><a href="map_世田谷区.html">世田谷区</a><a class="png" href="ward_世田谷区.png" title="静止画">▦</a></td><td>1,995</td><td>5.1</td><td>16.7</td><td>0.37</td><td>4.1</td><td>37.4</td></tr>
+<tr><td><a href="map_大田区.html">大田区</a><a class="png" href="ward_大田区.png" title="静止画">▦</a></td><td>1,482</td><td>5.6</td><td>17.9</td><td>0.34</td><td>6.3</td><td>4.2</td></tr>
+<tr><td><a href="map_北区.html">北区</a><a class="png" href="ward_北区.png" title="静止画">▦</a></td><td>673</td><td>5.1</td><td>25.0</td><td>0.34</td><td>4.9</td><td>5.6</td></tr>
+<tr><td><a href="map_練馬区.html">練馬区</a><a class="png" href="ward_練馬区.png" title="静止画">▦</a></td><td>1,632</td><td>5.4</td><td>9.4</td><td>0.33</td><td>2.2</td><td>40.9</td></tr>
+<tr><td><a href="map_墨田区.html">墨田区</a><a class="png" href="ward_墨田区.png" title="静止画">▦</a></td><td>480</td><td>5.8</td><td>17.2</td><td>0.33</td><td>1.5</td><td>-0.1</td></tr>
+<tr><td><a href="map_板橋区.html">板橋区</a><a class="png" href="ward_板橋区.png" title="静止画">▦</a></td><td>1,073</td><td>5.9</td><td>13.7</td><td>0.31</td><td>7.5</td><td>22.3</td></tr>
+<tr><td><a href="map_台東区.html">台東区</a><a class="png" href="ward_台東区.png" title="静止画">▦</a></td><td>380</td><td>6.8</td><td>10.4</td><td>0.30</td><td>1.6</td><td>2.3</td></tr>
+<tr><td><a href="map_葛飾区.html">葛飾区</a><a class="png" href="ward_葛飾区.png" title="静止画">▦</a></td><td>1,198</td><td>4.8</td><td>14.9</td><td>0.27</td><td>1.3</td><td>0.8</td></tr>
+<tr><td><a href="map_江戸川区.html">江戸川区</a><a class="png" href="ward_江戸川区.png" title="静止画">▦</a></td><td>1,610</td><td>5.2</td><td>13.9</td><td>0.25</td><td>1.7</td><td>0.7</td></tr>
+<tr><td><a href="map_足立区.html">足立区</a><a class="png" href="ward_足立区.png" title="静止画">▦</a></td><td>1,794</td><td>6.0</td><td>13.5</td><td>0.25</td><td>1.2</td><td>1.7</td></tr>
+<tr><td><a href="map_港区.html">港区</a><a class="png" href="ward_港区.png" title="静止画">▦</a></td><td>513</td><td>6.3</td><td>12.4</td><td>0.23</td><td>9.8</td><td>9.9</td></tr>
+<tr><td><a href="map_江東区.html">江東区</a><a class="png" href="ward_江東区.png" title="静止画">▦</a></td><td>1,036</td><td>5.9</td><td>15.2</td><td>0.18</td><td>2.6</td><td>1.7</td></tr>
+<tr><td><a href="map_中央区.html">中央区</a><a class="png" href="ward_中央区.png" title="静止画">▦</a></td><td>310</td><td>6.1</td><td>10.7</td><td>0.17</td><td>2.9</td><td>2.6</td></tr>
+<tr><td><a href="map_千代田区.html">千代田区</a><a class="png" href="ward_千代田区.png" title="静止画">▦</a></td><td>291</td><td>8.0</td><td>7.6</td><td>0.15</td><td>5.2</td><td>5.1</td></tr>
+</table>
+<div class="note">
+倒壊閉塞リスクは建蔽率を建物高さの代理変数とした<b>未較正の推定値</b>です。
+勾配が0の区間が多いのはDEM誤差を除去しているためで、平坦という意味ではありません。
+江戸川区は道路網の連結性に未解明の問題があります（最大連結成分53.4%）。
+詳細は <code>reports/qc.md</code> を参照してください。
+</div>

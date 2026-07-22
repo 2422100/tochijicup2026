@@ -1,0 +1,4 @@
+# 生成物である地図HTMLは言語統計から除外し、diffも抑制する
+reports/maps/*.html linguist-generated=true
+reports/maps/*.html -diff
+reports/**/*.png binary
