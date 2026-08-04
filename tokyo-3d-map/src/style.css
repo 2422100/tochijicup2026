@@ -35,3 +35,69 @@ body,
   margin: 0;
   opacity: 0.85;
 }
+
+#compass {
+  position: absolute;
+  bottom: 48px;
+  left: 36px;
+  z-index: 10;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(20, 22, 25, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+}
+
+.compass-label {
+  position: absolute;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.label-n {
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.label-s {
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.label-e {
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.label-w {
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#compassDial {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+#compassDial:active {
+  cursor: grabbing;
+}
+
+#compassHandle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}

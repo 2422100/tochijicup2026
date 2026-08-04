@@ -46,3 +46,66 @@ async function loadJapanBuildings() {
 }
 
 loadJapanBuildings();
+
+// コンパスをドラッグして視点の方角を変える
+const CENTER_LON = 139.767;
+const CENTER_LAT = 35.681;
+const OFFSET = 0.01; // 中心からカメラを離す距離（度）
+const CAMERA_HEIGHT = 400;
+const PITCH = Cesium.Math.toRadians(-25);
+const LAT_CORRECTION = Math.cos(Cesium.Math.toRadians(CENTER_LAT));
+
+const compassDial = document.getElementById("compassDial");
+let isDragging = false;
+
+function updateCameraByBearing(bearingDeg) {
+  const bearingRad = Cesium.Math.toRadians(bearingDeg);
+  const latOffset = OFFSET * Math.cos(bearingRad);
+  const lonOffset = (OFFSET * Math.sin(bearingRad)) / LAT_CORRECTION;
+  const heading = (bearingDeg + 180) % 360;
+
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(
+      CENTER_LON + lonOffset,
+      CENTER_LAT + latOffset,
+      CAMERA_HEIGHT
+    ),
+    orientation: {
+      heading: Cesium.Math.toRadians(heading),
+      pitch: PITCH,
+    },
+  });
+}
+
+function angleFromCenter(event) {
+  const rect = compassDial.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const dx = event.clientX - centerX;
+  const dy = event.clientY - centerY;
+  // 0度=真上(北)、時計回りに増加
+  let angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  if (angle < 0) angle += 360;
+  return angle;
+}
+
+function setCompassRotation(angleDeg) {
+  compassDial.style.transform = `rotate(${angleDeg}deg)`;
+}
+
+compassDial.addEventListener("pointerdown", (event) => {
+  isDragging = true;
+  compassDial.setPointerCapture(event.pointerId);
+});
+
+compassDial.addEventListener("pointermove", (event) => {
+  if (!isDragging) return;
+  const angle = angleFromCenter(event);
+  setCompassRotation(angle);
+  updateCameraByBearing(angle);
+});
+
+compassDial.addEventListener("pointerup", (event) => {
+  isDragging = false;
+  compassDial.releasePointerCapture(event.pointerId);
+});
