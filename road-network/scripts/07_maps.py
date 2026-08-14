@@ -6,7 +6,9 @@
   stage=ward      1区の道路網を属性で色分け → PNG
   stage=web       1区の道路網を単一HTMLの地図に → ブラウザで開ける
 
-出力: reports/maps/
+  stage=index     索引ページ → リポジトリ直下の index.html（GitHub Pages の入口）
+
+出力: reports/maps/（地図本体）, index.html + .nojekyll（直下）
 """
 import argparse, glob, json, os
 import numpy as np
@@ -23,6 +25,10 @@ PROC = os.path.join(ROOT, "02_processed")
 NET = os.path.join(ROOT, "03_network")
 OUT = os.path.join(ROOT, "reports", "maps")
 os.makedirs(OUT, exist_ok=True)
+
+# 索引ページ(index.html)はリポジトリ直下に置く（GitHub Pages の入口）。
+# 地図・PNG は OUT のままなので、索引からの相対パスはこの接頭辞になる。
+REL = "reports/maps/"
 
 # 日本語ラベルのためCJKフォントを明示的に指定する
 for cand in ("Noto Sans CJK JP", "Noto Serif CJK JP", "IPAGothic"):
@@ -250,11 +256,15 @@ def stage_web(ward, simplify_m=3.0, min_len=0.0):
 
 
 def stage_index():
-    """区別マップへの索引ページ。俯瞰PNGと主要指標の表を載せる"""
+    """区別マップへの索引ページ。俯瞰PNGと主要指標の表を載せる
+
+    GitHub Pages の入口にするため **リポジトリ直下** に index.html を書く。
+    地図本体は reports/maps/ のままなので、リンクはそこを起点にする。
+    """
     st = ward_stats().sort_values("blockage", ascending=False)
     rows = "\n".join(
-        f'<tr><td><a href="map_{r.ward}.html">{r.ward}</a>'
-        f'<a class="png" href="ward_{r.ward}.png" title="静止画">▦</a></td>'
+        f'<tr><td><a href="{REL}map_{r.ward}.html">{r.ward}</a>'
+        f'<a class="png" href="{REL}ward_{r.ward}.png" title="静止画">▦</a></td>'
         f'<td>{r.length_km:,.0f}</td><td>{r.width_med:.1f}</td>'
         f'<td>{r.narrow_pct:.1f}</td><td>{r.blockage:.2f}</td>'
         f'<td>{r.slope5:.1f}</td><td>{r.elev:.1f}</td></tr>'
@@ -274,6 +284,8 @@ def stage_index():
  td:first-child,th:first-child{{text-align:left}}
  a{{color:#6fb5ff;text-decoration:none}} a:hover{{text-decoration:underline}}
  .png{{margin-left:7px;color:#7a8399;font-size:12px}}
+ .child{{background:#1b2432;border-left:3px solid #6fb5ff;padding:12px 15px;border-radius:6px;margin-top:16px;font-size:13px}}
+ .child a{{font-size:15px}}
  .note{{background:#1c2029;border-left:3px solid #f0a24a;padding:11px 14px;
    border-radius:5px;font-size:13px;color:#c9d0de;margin-top:10px}}
 </style>
@@ -281,8 +293,14 @@ def stage_index():
 <p>国土地理院「基盤地図情報」から生成。694,712エッジ / 総延長19,586km。
 区名をクリックすると道路網の対話地図が開きます（道幅・倒壊閉塞リスク・勾配を切替）。</p>
 
+<div class="child">
+<a href="child_nav.html"><b>こどもぼうさいナビ →</b></a>
+<p style="margin:4px 0 0">ベビーカーを押して最寄りの避難所まで何分かかるかを23区で推定した地図。
+避難所1,538か所と、東京都福祉局の妊婦・乳幼児向け防災対策調査を重ねてあります。</p>
+</div>
+
 <h2>23区の俯瞰</h2>
-<img src="overview_23ku.png" alt="23区俯瞰">
+<img src="{REL}overview_23ku.png" alt="23区俯瞰">
 
 <h2>区別の指標</h2>
 <p>倒壊閉塞リスクの高い順。いずれも延長で重み付けした値です。</p>
@@ -298,10 +316,25 @@ def stage_index():
 詳細は <code>reports/qc.md</code> を参照してください。
 </div>
 """
-    p = os.path.join(OUT, "index.html")
+    # index.html は統合UI（10_app.py）が使う。道路データの索引はこちら
+    p = os.path.join(ROOT, "data_index.html")
     with open(p, "w", encoding="utf-8") as f:
         f.write(html)
     print("->", p, flush=True)
+
+    # Pages に Jekyll 処理をさせない（_ で始まるパスが落とされるのを防ぐ）
+    with open(os.path.join(ROOT, ".nojekyll"), "w") as f:
+        f.write("")
+
+    # 旧入口。マウント先はファイルを削除できないので上書きで転送先にする
+    old = os.path.join(OUT, "index.html")
+    with open(old, "w", encoding="utf-8") as f:
+        f.write('<!DOCTYPE html><meta charset="utf-8">'
+                '<meta http-equiv="refresh" content="0; url=../../index.html">'
+                '<title>移動しました</title>'
+                '<p>索引はリポジトリ直下に移動しました。'
+                '<a href="../../index.html">index.html</a></p>\n')
+    print("->", old, "(リダイレクト)", flush=True)
 
 
 if __name__ == "__main__":
