@@ -18,7 +18,8 @@
     dist_to_bld    エッジ中点から最近傍建物までの距離（沿道の張り出し余地）
     barrier_cross  水涯線・軌道と交差するエッジ（橋・踏切の情報が無いため要注意）
     slope_pct      DEM未投入のため 0.0 のプレースホルダ
-    cost_general / cost_wheelchair を config_weights.json の重みで合成
+    cost_general / cost_wheelchair / cost_stroller を config_weights.json の重みで合成
+    （cost_stroller* = ベビーカー・幼児連れ。time_min_child = 所要時間の目安）
 
 出力:
   03_network/edges_{区}.parquet   u, v, length_m, width_m, geometry, cost_*
@@ -199,6 +200,37 @@ def narrow_penalty(width_m, wheelchair=False):
     return base
 
 
+def stroller_penalty(width_m):
+    """ベビーカー・幼児連れの狭隘ペナルティ (0〜)
+
+    ベビーカーの車体幅は概ね0.5〜0.7mで車椅子とほぼ同じだが、
+    いざとなれば畳んで抱えられる点が違う。したがって
+      - 4m未満で効き始める形（narrow_penalty）は共通
+      - 係数は一般(1.0)と車椅子(2.5)の中間
+      - 2m未満は「対向者とすれ違えない」帯として段差を付ける。
+        避難時は双方向の流動があるため、すれ違い不能は実質的な閉塞になる。
+        車椅子の1.5m未満(+10.0)より軽いのは、畳んで通過できるため。
+    """
+    w = np.where(np.isnan(width_m), 4.0, width_m)
+    base = np.clip((4.0 - w) / 4.0, 0, 1) ** 2 * 3.0
+    return base * 2.0 + np.where(w < 2.0, 5.0, 0.0)
+
+
+def child_walk_speed_kmh(width_m, slope_pct, cfg):
+    """幼児連れの歩行速度[km/h]
+
+    成人単独は4km/h程度だが、幼児を連れた避難は2〜2.5km/h程度まで落ちる。
+    ここから勾配と狭さでさらに減速させる。**所要時間の目安を出すための
+    粗いモデルであり、実測に基づく較正はしていない。**
+    """
+    v0 = float(cfg.get("child_speed_kmh", 2.5))
+    sl = np.nan_to_num(np.asarray(slope_pct, dtype=float), nan=0.0)
+    w = np.where(np.isnan(width_m), 4.0, width_m)
+    v = v0 * np.clip(1.0 - 0.06 * sl, 0.4, 1.0)      # 10%勾配で約0.4倍
+    v = v * np.where(w < 2.0, 0.85, 1.0)             # すれ違い待ちの分
+    return np.maximum(v, 0.3)
+
+
 def blockage_risk(width_m, bld_density, cfg):
     """地震時の倒壊閉塞リスク (0〜1)
 
@@ -253,6 +285,23 @@ def compute_costs(edges, cfg):
         + cfg["w1_wc"] * narrow_penalty(w, wheelchair=True)
         + cfg["w2_wc"] * slope / 10.0
         + cfg["w3"] * blk)
+
+    # --- 子連れ避難（ベビーカー・幼児連れ）
+    #   道幅と勾配の効きを一般モードより強くする。地震時版は倒壊閉塞も加える。
+    stp = stroller_penalty(w)
+    edges["cost_stroller"] = L * (
+        1
+        + cfg.get("w1_st", 2.0) * stp
+        + cfg.get("w2_st", 1.5) * slope / 10.0)
+    edges["cost_stroller_quake"] = L * (
+        1
+        + cfg.get("w1_st", 2.0) * stp
+        + cfg.get("w2_st", 1.5) * slope / 10.0
+        + cfg["w3"] * blk)
+    # 所要時間の目安（幼児連れ）。表示用であり経路探索の重みには使っていない
+    edges["time_min_child"] = np.round(
+        L / 1000.0 / child_walk_speed_kmh(w, slope, cfg) * 60.0, 3)
+
     # barrier_cross は「平常時のペナルティ」ではなく「橋梁・踏切のフラグ」として扱う。
     #   水部や軌道を横断している道路は定義上そこに橋（または踏切）が架かっており、
     #   むしろ幅の広い幹線であることが多い。当初これを×50で罰したところ、
@@ -263,7 +312,8 @@ def compute_costs(edges, cfg):
     if bp:
         edges.loc[edges["barrier_cross"],
                   ["cost_general", "cost_wheelchair",
-                   "cost_quake", "cost_quake_wc"]] *= (1.0 + bp)
+                   "cost_quake", "cost_quake_wc",
+                   "cost_stroller", "cost_stroller_quake"]] *= (1.0 + bp)
     return edges
 
 
@@ -325,6 +375,10 @@ def main():
                 continue
             e = gpd.read_parquet(fp)
             _atomic_to_parquet(compute_costs(e, cfg), fp)
+            # 列を追加したので世代マーカも進めておく。これを打っておけば
+            # `--stage cost --skip-done` が空間結合をやり直さずに済む。
+            os.makedirs(os.path.join(NET, "_topo_v2"), exist_ok=True)
+            open(os.path.join(NET, "_topo_v2", ward + ".cost5"), "w").close()
             print(f"[{ward}] コスト再計算 {len(e):,}", flush=True)
         return
 
@@ -359,7 +413,7 @@ def main():
                   f"幅{edges['width_m'].median():.1f}m", flush=True)
 
         else:
-            if args.skip_done and os.path.exists(os.path.join(NET,"_topo_v2",ward+".cost4")) and _readable(fp):
+            if args.skip_done and os.path.exists(os.path.join(NET,"_topo_v2",ward+".cost5")) and _readable(fp):
                 continue
             if not _readable(ep):
                 print(f"[{ward}] 位相が未作成 → skip", flush=True); continue
@@ -371,7 +425,7 @@ def main():
             out = add_costs(edges, b, barriers, cfg, dens=dens)
             _atomic_to_parquet(out, fp)
             os.makedirs(os.path.join(NET, "_topo_v2"), exist_ok=True)
-            open(os.path.join(NET, "_topo_v2", ward + ".cost4"), "w").close()
+            open(os.path.join(NET, "_topo_v2", ward + ".cost5"), "w").close()
             print(f"[{ward}] コスト付与 {len(out):,}  "
                   f"障壁交差 {int(out['barrier_cross'].sum()):,}  "
                   f"建物まで中央値 {out['dist_to_bld'].median():.1f}m", flush=True)

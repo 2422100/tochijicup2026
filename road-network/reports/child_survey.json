@@ -1,0 +1,278 @@
+{
+ "supplies": [
+  {
+   "label": "ベビーベッド",
+   "yes": 5,
+   "no": 57,
+   "total": 62,
+   "pct": 8.1
+  },
+  {
+   "label": "ほ乳びん消毒剤",
+   "yes": 6,
+   "no": 56,
+   "total": 62,
+   "pct": 9.7
+  },
+  {
+   "label": "乳幼児用毛布",
+   "yes": 6,
+   "no": 56,
+   "total": 62,
+   "pct": 9.7
+  },
+  {
+   "label": "栄養食品等（妊婦）",
+   "yes": 7,
+   "no": 55,
+   "total": 62,
+   "pct": 11.3
+  },
+  {
+   "label": "離乳食",
+   "yes": 9,
+   "no": 53,
+   "total": 62,
+   "pct": 14.5
+  },
+  {
+   "label": "アレルギー対応ミルク",
+   "yes": 11,
+   "no": 51,
+   "total": 62,
+   "pct": 17.7
+  },
+  {
+   "label": "おしりふき",
+   "yes": 12,
+   "no": 50,
+   "total": 62,
+   "pct": 19.4
+  },
+  {
+   "label": "乳幼児用衣類",
+   "yes": 12,
+   "no": 50,
+   "total": 62,
+   "pct": 19.4
+  },
+  {
+   "label": "ミルク用の水",
+   "yes": 14,
+   "no": 48,
+   "total": 62,
+   "pct": 22.6
+  },
+  {
+   "label": "おかゆ",
+   "yes": 39,
+   "no": 23,
+   "total": 62,
+   "pct": 62.9
+  },
+  {
+   "label": "生理用品",
+   "yes": 46,
+   "no": 16,
+   "total": 62,
+   "pct": 74.2
+  },
+  {
+   "label": "粉ミルク",
+   "yes": 47,
+   "no": 15,
+   "total": 62,
+   "pct": 75.8
+  },
+  {
+   "label": "紙おむつ",
+   "yes": 47,
+   "no": 15,
+   "total": 62,
+   "pct": 75.8
+  },
+  {
+   "label": "ほ乳びん",
+   "yes": 48,
+   "no": 14,
+   "total": 62,
+   "pct": 77.4
+  },
+  {
+   "label": "毛布",
+   "yes": 62,
+   "no": 0,
+   "total": 62,
+   "pct": 100.0
+  }
+ ],
+ "operation": [
+  {
+   "label": "19",
+   "yes": 0,
+   "considering": 17,
+   "no": 45,
+   "total": 62,
+   "pct": 0.0
+  },
+  {
+   "label": "20",
+   "yes": 1,
+   "considering": 17,
+   "no": 45,
+   "total": 63,
+   "pct": 1.6
+  },
+  {
+   "label": "2",
+   "yes": 3,
+   "considering": 9,
+   "no": 50,
+   "total": 62,
+   "pct": 4.8
+  },
+  {
+   "label": "16",
+   "yes": 3,
+   "considering": 6,
+   "no": 53,
+   "total": 62,
+   "pct": 4.8
+  },
+  {
+   "label": "6",
+   "yes": 4,
+   "considering": 15,
+   "no": 43,
+   "total": 62,
+   "pct": 6.5
+  },
+  {
+   "label": "3",
+   "yes": 11,
+   "considering": 18,
+   "no": 33,
+   "total": 62,
+   "pct": 17.7
+  },
+  {
+   "label": "8",
+   "yes": 11,
+   "considering": 6,
+   "no": 45,
+   "total": 62,
+   "pct": 17.7
+  },
+  {
+   "label": "17",
+   "yes": 12,
+   "considering": 14,
+   "no": 36,
+   "total": 62,
+   "pct": 19.4
+  },
+  {
+   "label": "4",
+   "yes": 13,
+   "considering": 19,
+   "no": 30,
+   "total": 62,
+   "pct": 21.0
+  },
+  {
+   "label": "5",
+   "yes": 13,
+   "considering": 20,
+   "no": 29,
+   "total": 62,
+   "pct": 21.0
+  },
+  {
+   "label": "18",
+   "yes": 13,
+   "considering": 27,
+   "no": 22,
+   "total": 62,
+   "pct": 21.0
+  },
+  {
+   "label": "9",
+   "yes": 22,
+   "considering": 13,
+   "no": 27,
+   "total": 62,
+   "pct": 35.5
+  },
+  {
+   "label": "1",
+   "yes": 27,
+   "considering": 9,
+   "no": 26,
+   "total": 62,
+   "pct": 43.5
+  },
+  {
+   "label": "13",
+   "yes": 37,
+   "considering": 11,
+   "no": 14,
+   "total": 62,
+   "pct": 59.7
+  },
+  {
+   "label": "12",
+   "yes": 38,
+   "considering": 10,
+   "no": 14,
+   "total": 62,
+   "pct": 61.3
+  },
+  {
+   "label": "15",
+   "yes": 38,
+   "considering": 15,
+   "no": 9,
+   "total": 62,
+   "pct": 61.3
+  },
+  {
+   "label": "7",
+   "yes": 40,
+   "considering": 6,
+   "no": 16,
+   "total": 62,
+   "pct": 64.5
+  },
+  {
+   "label": "14",
+   "yes": 41,
+   "considering": 9,
+   "no": 12,
+   "total": 62,
+   "pct": 66.1
+  },
+  {
+   "label": "11",
+   "yes": 49,
+   "considering": 7,
+   "no": 6,
+   "total": 62,
+   "pct": 79.0
+  },
+  {
+   "label": "10",
+   "yes": 50,
+   "considering": 5,
+   "no": 7,
+   "total": 62,
+   "pct": 80.6
+  }
+ ],
+ "shelter": {
+  "label": "妊産婦・乳幼児を想定した避難所",
+  "yes": 15,
+  "no": 47,
+  "total": 62,
+  "pct": 24.2
+ }
+}
