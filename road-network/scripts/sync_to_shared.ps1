@@ -19,7 +19,7 @@
 param(
   [string]$Repo    = "https://github.com/2422100/tochijicup2026.git",
   [string]$Prefix  = "road-network",
-  [string]$Branch  = "feat/child-evacuation-ui",
+  [string]$Branch  = "feat/pages-root-and-fixes",
   [string]$WorkDir = "C:\claudeProject\shared",
   [switch]$Apply
 )
@@ -55,6 +55,10 @@ $files = @(
 Get-ChildItem (Join-Path $src "data") -Filter *.json -ErrorAction SilentlyContinue |
   Sort-Object Name | ForEach-Object { $files += "data\" + $_.Name }
 
+# リポジトリ**直下**に置くファイル（$Prefix の下ではない）。
+# 左が手元のパス、右が共有リポジトリのルートからのパス。
+$rootFiles = @{ "pages_root\index.html" = "index.html" }
+
 # ---- clone --------------------------------------------------------------
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
 $clone = Join-Path $WorkDir "tochijicup2026"
@@ -74,33 +78,39 @@ git -C $clone log --oneline -8 | ForEach-Object { Write-Host ("   " + $_) }
 Write-Host ""
 
 # ---- 分類 ---------------------------------------------------------------
+# 手元パス -> 共有リポジトリ内のパス、の対応表にまとめる
+$map = [ordered]@{}
+foreach ($f in $files)          { $map[$f] = (Join-Path $Prefix $f) }
+foreach ($k in $rootFiles.Keys) { $map[$k] = $rootFiles[$k] }
+
 $new = @(); $same = @(); $conflict = @(); $missing = @()
-foreach ($f in $files) {
+foreach ($f in $map.Keys) {
   $s = Join-Path $src $f
   if (-not (Test-Path $s)) { $missing += $f; continue }
-  $d = Join-Path $clone (Join-Path $Prefix $f)
+  $d = Join-Path $clone $map[$f]
   if (-not (Test-Path $d)) { $new += $f; continue }
   if ((Get-FileHash $s).Hash -eq (Get-FileHash $d).Hash) { $same += $f }
   else { $conflict += $f }
 }
 
 Write-Host ("● 新規追加: " + $new.Count + " ファイル") -ForegroundColor Green
-$new | ForEach-Object { Write-Host ("   + $Prefix\" + $_) }
+$new | ForEach-Object { Write-Host ("   + " + $map[$_]) }
 Write-Host ""
 if ($same.Count -gt 0) {
   Write-Host ("● 内容が同じ（コピー不要）: " + $same.Count) -ForegroundColor DarkGray
-  $same | ForEach-Object { Write-Host ("   = $Prefix\" + $_) }
+  $same | ForEach-Object { Write-Host ("   = " + $map[$_]) }
   Write-Host ""
 }
 if ($conflict.Count -gt 0) {
   Write-Host ("★ 共有リポジトリ側と内容が違う: " + $conflict.Count) -ForegroundColor Yellow
   Write-Host "  上書きすると、他の人がこのファイルに加えた変更が" -ForegroundColor Yellow
   Write-Host "  あなたのブランチでは失われます（mainの履歴は無事です）。" -ForegroundColor Yellow
-  $conflict | ForEach-Object { Write-Host ("   ! $Prefix\" + $_) }
+  $conflict | ForEach-Object { Write-Host ("   ! " + $map[$_]) }
   Write-Host ""
   Write-Host "  中身を見る:" -ForegroundColor DarkGray
   foreach ($f in $conflict) {
-    Write-Host ("    git diff --no-index `"$clone\$Prefix\$f`" `"$src\$f`"") -ForegroundColor DarkGray
+    $dp = Join-Path $clone $map[$f]
+    Write-Host ("    git diff --no-index `"$dp`" `"$src\$f`"") -ForegroundColor DarkGray
   }
   Write-Host ""
 }
@@ -127,7 +137,7 @@ if ([string]::IsNullOrWhiteSpace($exists)) {
 Write-Host ("ブランチ: " + (git -C $clone rev-parse --abbrev-ref HEAD)) -ForegroundColor Cyan
 
 foreach ($f in ($new + $conflict)) {
-  $d = Join-Path $clone (Join-Path $Prefix $f)
+  $d = Join-Path $clone $map[$f]
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $d) | Out-Null
   Copy-Item (Join-Path $src $f) $d -Force
 }
