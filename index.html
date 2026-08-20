@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>都知事杯オープンデータハッカソン 2026</title>
+<style>
+ :root{--surface:#1a1a19;--panel:#232322;--ink:#fff;--ink2:#c3c2b7;
+   --ink3:#8b8a82;--line:#33332f;--s1:#3987e5}
+ *{box-sizing:border-box}
+ body{background:var(--surface);color:var(--ink);margin:0 auto;max-width:820px;
+   padding:56px 22px 80px;font-family:"Noto Sans JP",system-ui,sans-serif;
+   line-height:1.75}
+ h1{font-size:25px;margin:0 0 6px;letter-spacing:.01em}
+ p{color:var(--ink2);font-size:14px;margin:6px 0}
+ .card{display:block;background:var(--panel);border:1px solid var(--line);
+   border-radius:12px;padding:20px 22px;margin-top:16px;text-decoration:none;
+   color:inherit;transition:border-color .15s}
+ .card:hover{border-color:var(--s1)}
+ .card b{display:block;font-size:18px;color:var(--s1);margin-bottom:4px}
+ .card span{color:var(--ink2);font-size:13.5px;display:block}
+ .card em{color:var(--ink3);font-size:12px;font-style:normal;display:block;
+   margin-top:8px}
+ footer{color:var(--ink3);font-size:12px;margin-top:40px;line-height:1.7}
+ footer a{color:#6fb5ff}
+</style></head><body>
+<h1>都知事杯オープンデータハッカソン 2026</h1>
+<p>東京都のオープンデータを使って作った成果物です。</p>
+
+<a class="card" href="road-network/">
+  <b>こどもぼうさいナビ →</b>
+  <span>ベビーカーを押して最寄りの避難所まで何分かかるかを東京23区で推定した地図。
+  道幅・勾配・建物倒壊による閉塞を切り替えて見られ、避難所1,538か所と
+  広域避難場所764か所を重ねてあります。</span>
+  <em>出典: 国土地理院 基盤地図情報 / 東京都防災マップ 避難所・避難場所一覧（総務局）/
+  都内区市町村の妊婦・乳幼児に関連した防災対策調査結果（福祉局）</em>
+</a>
+
+<a class="card" href="tokyo-3d-map/">
+  <b>東京3Dマップ →</b>
+  <span>東京の地形と建物を3Dで見るビューア。</span>
+</a>
+
+<footer>
+  データの出典表記は各ページに記載しています。<br>
+  ソース: <a href="https://github.com/2422100/tochijicup2026">github.com/2422100/tochijicup2026</a>
+</footer>
+</body></html>

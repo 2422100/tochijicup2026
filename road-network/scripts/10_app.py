@@ -26,19 +26,28 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROC = os.path.join(ROOT, "02_processed")
 REP = os.path.join(ROOT, "reports")
 
-RAMP = ["#184f95", "#256abf", "#2a78d6", "#3987e5", "#5598e7",
-        "#6da7ec", "#86b6ef", "#9ec5f4", "#b7d3f6", "#cde2fb"]
+# 連続量のランプ。単一色相の青では中間の階級が見分けられなかったため、
+# 「熱」の連続ランプ(magma)に変更した。明度が単調に上がるので順序が読め、
+# 色覚特性の影響も受けにくい。暗い地図で最下位が沈まないよう 0.35 で切っている
+# （背景 #111318 とのコントラスト比 2.07:1）。
+RAMP = ["#782281", "#932b80", "#ae347b", "#ca3e72", "#e34e65", "#f4675c", "#fc8961", "#fea973", "#fec88c", "#fde7a9"]
 C_SHELTER = "#d95926"     # categorical slot2 (dark)
 C_AREA = "#199e70"        # categorical slot3 (dark)
 S1 = "#3987e5"
 SURFACE = "#1a1a19"
 
+# 階級は**実データの十分位**（各階級におよそ10%が入る）。等間隔で切ると
+# 中央付近に大半が固まって色の差が読めなくなるため。
+#   倒壊閉塞は31%、勾配は75%が値0（勾配はDEM誤差を除去した結果）なので、
+#   この2つは 0 を独立した最下位階級にして、残りを分割している。
+#   勾配だけは0以外の分布も0.2%前後に潰れていて十分位が使えないため、
+#   実際に意味のある刻み（0.3〜9%）を置いている。
 METRICS = [
-    ("tn", "子連れ到達時間・平常時", 2, [4, 6, 8, 10, 12, 15, 18, 22, 28], "分", None, 0),
-    ("tq", "子連れ到達時間・地震時", 3, [4, 6, 8, 10, 12, 15, 18, 22, 28], "分", None, 0),
-    ("w",  "道幅",                  5, [3, 3.5, 4, 4.5, 5, 6, 8, 10, 14], "m", 0, 1),
-    ("b",  "倒壊閉塞リスク",         6, [.1, .2, .3, .4, .5, .6, .7, .8, .9], "", 1, 0),
-    ("s",  "勾配",                  7, [1, 2, 3, 4, 5, 7, 9, 12, 15], "%", 2, 0),
+    ("tn", "子連れ到達時間・平常時", 2, [3.5, 5.5, 7.0, 8.5, 10.0, 12.0, 13.5, 16.0, 20.5], "分", None, 0),
+    ("tq", "子連れ到達時間・地震時", 3, [3.5, 5.5, 7.5, 9.0, 10.5, 12.0, 14.0, 17.0, 21.5], "分", None, 0),
+    ("w",  "道幅",                  5, [4.1, 4.5, 5.0, 5.7, 6.2, 6.6, 7.7, 9.2, 16.4], "m", 0, 1),
+    ("b",  "倒壊閉塞リスク",         6, [0.001, 0.16, 0.26, 0.32, 0.4, 0.46, 0.52, 0.58, 0.64], "", 1, 0),
+    ("s",  "勾配",                  7, [0.001, 0.3, 0.6, 1.0, 1.5, 2.5, 4.0, 6.0, 9.0], "%", 2, 0),
 ]
 
 
@@ -170,10 +179,10 @@ def build():
  .bv{{text-align:right;font-variant-numeric:tabular-nums}}
  .note{{background:#241f1a;border-left:3px solid var(--sh);padding:10px 12px;
    border-radius:6px;font-size:11.5px;color:var(--ink2);line-height:1.65}}
- .sq{{background:var(--ar);border:1.5px solid #fff3;border-radius:2px;
+ .sq{{background:var(--ar);border:1.5px solid #fff;border-radius:2px;
    position:absolute;transform:translate(-50%,-50%);width:11px;height:11px}}
- .zl .sq{{width:5px;height:5px;border-width:1px}}
- .zm .sq{{width:8px;height:8px}}
+ .zl .sq{{width:5px;height:5px;border-width:0}}
+ .zm .sq{{width:8px;height:8px;border-width:1px}}
  .leaflet-popup-content-wrapper,.leaflet-popup-tip{{background:var(--panel);
    color:var(--ink)}}
  .leaflet-popup-content{{font-size:12.5px;line-height:1.6;margin:11px 13px}}
@@ -196,7 +205,8 @@ def build():
    <p class="lbl">色で見る指標</p>
    <div class="row">{mbtn}</div>
    <div class="ramp" id="ramp"></div>
-   <div class="ticks"><span id="t0"></span><span id="t1"></span></div>
+   <div class="ticks"><span id="t0"></span><span id="t1"></span>
+     <span id="t2"></span><span id="t3"></span></div>
    <p class="lbl" style="margin-top:11px">地点</p>
    <div class="row">
     <button class="sh" id="bsh" aria-pressed="true">● 避難所</button>
@@ -257,6 +267,10 @@ const METRICS = {json.dumps({m[0]: {"label": m[1], "idx": m[2], "breaks": m[3],
 const SUPPLY = {json.dumps(supply_html, ensure_ascii=False)};
 const M = D.mesh, HALF = M.mesh_m/2, ROAD_ZOOM = 13;
 let metric = 'tn';
+// file:// で開くとブラウザが fetch を許さないため道路データを取れない。
+// その場合はメッシュ表示のまま使えるようにする（真っ黒な地図にしない）。
+const FILE_MODE = location.protocol === 'file:';
+const failed = {{}};
 
 const map = L.map('map',{{preferCanvas:true, zoomControl:false}})
               .setView([35.702,139.752],11);
@@ -274,16 +288,30 @@ function colorOf(v, m){{
   return RAMP[m.inv ? RAMP.length-1-i : i];
 }}
 
+/* 表示中の区の道路データが実際に手元にあるか。
+   file:// や取得失敗のときは false になり、メッシュを出したままにする */
+function roadsUsable(){{
+  if (FILE_MODE || METRICS[metric].road === null) return false;
+  const ws = visibleWards();
+  return ws.length > 0 && ws.some(w => cache[w] && cache[w].lines.length > 0);
+}}
+
 const meshLayer = L.layerGroup().addTo(map);
 function drawMesh(){{
   meshLayer.clearLayers();
-  if (map.getZoom() >= ROAD_ZOOM && METRICS[metric].road !== null) return;
-  const m = METRICS[metric], dLat = HALF/111320;
+  const m = METRICS[metric], z = map.getZoom();
+  // 道路が実際に描けているときだけメッシュを下敷きとして薄くする
+  const op = (z >= ROAD_ZOOM && roadsUsable()) ? 0.12 : 0.72;
+  const dLat = HALF/111320;
+  // ズーム時は画面内のセルだけ描く（9,965枚を毎回描かない）
+  const vb = z >= 12 ? map.getBounds().pad(0.2) : null;
   for (const c of M.cells){{
+    if (vb && (c[0] < vb.getSouth() || c[0] > vb.getNorth() ||
+               c[1] < vb.getWest()  || c[1] > vb.getEast())) continue;
     const col = colorOf(c[m.idx], m); if (!col) continue;
     const dLon = HALF/(111320*Math.cos(c[0]*Math.PI/180));
     L.rectangle([[c[0]-dLat,c[1]-dLon],[c[0]+dLat,c[1]+dLon]],
-      {{stroke:false,fillColor:col,fillOpacity:0.72,pane:'meshPane'}})
+      {{stroke:false,fillColor:col,fillOpacity:op,pane:'meshPane'}})
      .bindPopup(()=>popMesh(c)).addTo(meshLayer);
   }}
 }}
@@ -313,13 +341,17 @@ function decode(d, scale){{
   return pts;
 }}
 async function ensureRoads(w){{
-  if (cache[w] || loading[w]) return;
+  if (FILE_MODE || cache[w] || loading[w] || failed[w]) return;
   loading[w] = true;
   try {{
     const r = await fetch('data/roads_'+encodeURIComponent(w)+'.json');
+    if (!r.ok) throw new Error(r.status);
     cache[w] = await r.json();
-  }} catch(e) {{ cache[w] = {{lines:[],scale:1e5}}; }}
-  loading[w] = false; drawRoads();
+  }} catch(e) {{
+    failed[w] = true;
+    console.warn('道路データを取得できません: ' + w, e);
+  }}
+  loading[w] = false; drawRoads(); drawMesh();
 }}
 function drawRoads(){{
   roadLayer.clearLayers();
@@ -366,12 +398,22 @@ for (const s of D.shelters){{
      +'<dt>車椅子対応トイレ</dt><dd>'+(s[6]?'あり':'記載なし')+'</dd></dl>'
      +'<div class="ref">この施設に何が備蓄されているかは公開されていません。'
      +'都内62自治体のうち備蓄している割合は<ul>'+SUPPLY+'</ul></div></div>');
+  mk._ok = !!s[4];             // スロープ等の有無。低ズームでは区別しない
   mk.addTo(shLayer); shMarks.push(mk);
 }}
 function sizeByZoom(){{
   const z = map.getZoom(), c = map.getContainer();
   c.classList.toggle('zl', z<=11); c.classList.toggle('zm', z>11 && z<=13);
-  const r = rad(z); shMarks.forEach(m=>m.setRadius(r));
+  // 白縁はセルの上でピンを浮かせるためのものだが、引いたときは
+  // 1,538個の縁が面を覆って点描のようになる。ズームに応じて太さを変える。
+  const r = rad(z), w = z<=11 ? 0 : (z<=13 ? 1 : 1.5);
+  // 引いたときは「スロープ等なし」の暗い塗りが黒い点に見えて面を乱すので、
+  // 分布だけが分かればよい低ズームでは色を1つに揃える
+  shMarks.forEach(m=>m.setRadius(r).setStyle({{
+    weight: w,
+    fillColor: (z<=11 || m._ok) ? '{C_SHELTER}' : '#2b2b29',
+    fillOpacity: z<=11 ? 0.85 : 1
+  }}));
 }}
 map.on('zoomend', sizeByZoom);
 
@@ -388,19 +430,32 @@ for (const a of D.areas){{
 
 /* --- 凡例・ヒント --- */
 function legend(){{
-  const m = METRICS[metric];
+  const m = METRICS[metric], b = m.breaks, u = m.unit;
+  // 道幅だけは「大きいほど安全」なのでランプも目盛りも左右を入れ替え、
+  // どの指標でも「左が安全・右が危険」に揃える。
   const ramp = m.inv ? [...RAMP].reverse() : RAMP;
   document.getElementById('ramp').innerHTML =
     ramp.map(c=>'<i style="background:'+c+'"></i>').join('');
-  document.getElementById('t0').textContent =
-    (m.inv ? '広い' : '小さい') + (m.unit? ' ('+m.unit+')':'');
-  document.getElementById('t1').textContent =
-    m.inv ? '狭い（危険側）' : '大きい（危険側）';
+  const n = v => (Math.round(v*10)/10) + u;
+  const t = m.inv
+    ? ['安全 '+n(b[8])+'〜', n(b[5]), n(b[2]), '〜'+n(b[0])+' 危険']
+    : ['安全 〜'+n(b[0]), n(b[2]), n(b[5]), n(b[8])+'〜 危険'];
+  for (let i=0;i<4;i++) document.getElementById('t'+i).textContent = t[i];
 }}
 function hint(){{
-  const z = map.getZoom(), m = METRICS[metric];
-  document.getElementById('hint').textContent =
-    z < ROAD_ZOOM
+  const z = map.getZoom(), m = METRICS[metric], el = document.getElementById('hint');
+  if (FILE_MODE) {{
+    el.innerHTML = '<b style="color:#eda100">ローカルファイルとして開いています。</b>'
+      + 'ブラウザの制限で道路データ(data/)を読み込めないため、'
+      + '250mメッシュ表示のみになります。道路1本ごとの表示は、'
+      + 'GitHub Pages で開くか、ローカルサーバー経由で開いてください。';
+    return;
+  }}
+  const nf = Object.keys(failed).length;
+  el.textContent =
+    nf > 0 ? ('道路データを取得できませんでした（' + nf + '区）。'
+              + 'data/ フォルダが同じ場所にあるか確認してください。')
+    : z < ROAD_ZOOM
       ? '250mメッシュ表示。ズームすると道路1本ごとに切り替わります。'
       : (m.road === null
          ? '到達時間は道路単位では持っていないため、メッシュのまま表示しています。'
